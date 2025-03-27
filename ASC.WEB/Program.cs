@@ -1,38 +1,28 @@
 ﻿using ASC.DataAccess.Interface;
 using ASC.WEB.Configuration;
 using ASC.WEB.Data;
+using ASC.WEB.Models;
 using ASC.WEB.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.General;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(connectionString));
-builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
+builder.Services
+        .AddCongfig(builder.Configuration)
+        .AddMyDependencyGroup();
+builder.Services.AddRazorPages();
+
+builder.Services.AddAuthentication(options =>
 {
-    options.User.RequireUniqueEmail = true;
-})
-.AddEntityFrameworkStores<ApplicationDbContext>()
-.AddDefaultTokenProviders();
+    options.DefaultAuthenticateScheme = IdentityConstants.ApplicationScheme;
+    options.DefaultChallengeScheme = IdentityConstants.ApplicationScheme;
+    options.DefaultSignInScheme = IdentityConstants.ExternalScheme;
+});
 
-builder.Services.AddScoped<DbContext, ApplicationDbContext>();
-builder.Services.AddDatabaseDeveloperPageExceptionFilter();
-builder.Services.AddDistributedMemoryCache();
-builder.Services.AddSession();
 
-builder.Services.AddControllersWithViews();
-builder.Services.AddRazorPages(); // Ensure Razor Pages services are added
-builder.Services.Configure<ApplicationSettings>(builder.Configuration.GetSection("AppSettings"));
-builder.Services.AddOptions();
-
-builder.Services.AddTransient<IEmailSender, AuthMessgageSender>();
-builder.Services.AddTransient<ISmsSender, AuthMessgageSender>();
-builder.Services.AddSingleton<IIdentitySeed, IdentitySeed>();
-builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
 var app = builder.Build();
 
@@ -47,6 +37,7 @@ else
     app.UseHsts();
 }
 
+app.MapRazorPages();
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseSession();
@@ -55,6 +46,10 @@ app.UseRouting();
 
 app.UseAuthentication(); // Ensure authentication middleware is added
 app.UseAuthorization();
+
+app.MapControllerRoute(
+    name: "areaRoute",
+    pattern: "{area:exists}/{controller=Home}/{action=Index}");
 
 app.MapControllerRoute(
     name: "default",
@@ -71,6 +66,12 @@ using (var scope = app.Services.CreateScope())
         services.GetRequiredService<RoleManager<IdentityRole>>(),
         services.GetRequiredService<IOptions<ApplicationSettings>>()
     );
+}
+
+using (var scope = app.Services.CreateScope())
+{
+    var navigationCacheOperations = scope.ServiceProvider.GetRequiredService<INavigationCacheOperations>();
+    await navigationCacheOperations.CreateNavigationCacheAsync();
 }
 
 app.Run();

@@ -1,10 +1,12 @@
 ﻿using ASC.Model.Models;
+using ASC.WEB.Models;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace ASC.WEB.Data
 {
-    public class ApplicationDbContext : IdentityDbContext
+    public class ApplicationDbContext : IdentityDbContext<IdentityUser>
     {
         public virtual DbSet<MasterDataKey> MasterDataKeys { get; set; }
         public virtual DbSet<MasterDataValue> MasterDataValues { get; set; }

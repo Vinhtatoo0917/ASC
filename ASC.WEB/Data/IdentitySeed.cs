@@ -3,6 +3,7 @@ using ASC.WEB.Configuration;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Logging;
+using ASC.WEB.Models;
 
 namespace ASC.WEB.Data
 {
@@ -16,8 +17,9 @@ namespace ASC.WEB.Data
         }
 
         public async Task Seed(UserManager<IdentityUser> userManager,
-                               RoleManager<IdentityRole> roleManager,
-                               IOptions<ApplicationSettings> options)
+                       RoleManager<IdentityRole> roleManager,
+                       IOptions<ApplicationSettings> options)
+
         {
             var roles = options.Value.Roles?.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries) ?? new string[0];
 
